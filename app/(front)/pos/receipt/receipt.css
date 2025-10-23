@@ -1,0 +1,34 @@
+/* 58mm ~ 384px at 203dpi; We'll use ~ 300px for safe area */
+:root { --paper-width: 300px; --font-size: 12px; }
+@media print {
+  body { margin: 0; }
+  .no-print { display: none !important; }
+}
+.receipt {
+  width: var(--paper-width);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: var(--font-size);
+  line-height: 1.35;
+  color: #000;
+  background: #fff;
+  padding: 10px;
+}
+.hr { border-top: 1px dashed #000; margin: 6px 0; }
+.row { display: flex; justify-content: space-between; }
+.center { text-align: center; }
+.bold { font-weight: 700; }
+.small { font-size: 10px; }
+.logo { width: 120px; height: auto; margin: 0 auto 6px; display: block; }
+.items .line { display: flex; justify-content: space-between; margin: 2px 0; }
+.items .name { flex: 1; padding-right: 8px; }
+.items .qty { width: 36px; text-align: right; }
+.items .price { width: 64px; text-align: right; }
+.total .row { margin: 2px 0; }
+.footer { margin-top: 8px; text-align: center; }
+@media screen and (min-width: 500px){
+  /* preview on desktop */
+  body{ display:flex; justify-content:center; background:#f3f3f3; padding:20px; }
+  .receipt{ box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.08); }
+}
+/* 80mm variant */
+.w80 { --paper-width: 520px; --font-size: 14px; }
