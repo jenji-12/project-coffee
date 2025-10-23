@@ -1,1 +1,0 @@
-// placeholder manage promotions later
