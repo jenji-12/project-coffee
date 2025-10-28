@@ -1,12 +1,13 @@
 'use client'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import CategoriesTabs from '../../../components/pos/CategoriesTabs'
 import ProductGrid from '../../../components/pos/ProductGrid'
-import MemberSearch from '@/components/pos/MemberSearch'
-import PaymentPanel from '@/components/pos/PaymentPanel'
-import HotkeysHelp from '@/components/pos/HotkeysHelp'
-import Button from '@/components/Button'
-import ModifiersPicker from '@/components/pos/ModifiersPicker'
+import MemberSearch from '../../../components/pos/MemberSearch'
+import PaymentPanel from '../../../components/pos/PaymentPanel'
+import HotkeysHelp from '../../../components/pos/HotkeysHelp'
+import Button from '../../../components/Button'
+import ModifiersPicker from '../../../components/pos/ModifiersPicker'
 import * as A from './actions'
 
 type Totals = { subtotal:number, discount:number, tax:number, total:number }
