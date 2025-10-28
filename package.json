@@ -4,10 +4,7 @@
   "description": "Waibon POS - Reports & Dashboard with Supabase Storage",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=18.17.0",
-    "npm": ">=9.0.0"
-  },
+  "engines": { "node": ">=18.17.0 <19", "npm": ">=9 <11" },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -35,15 +32,7 @@
     "tailwindcss": "3.3.5",
     "typescript": "5.4.5"
   },
-  "keywords": [
-    "pos",
-    "dashboard",
-    "supabase",
-    "reports",
-    "charts",
-    "nextjs",
-    "react"
-  ],
+  "keywords": ["pos","dashboard","supabase","reports","charts","nextjs","react"],
   "author": "Jenji-12",
   "license": "MIT"
 }
