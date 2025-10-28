@@ -1,15 +1,8 @@
-// app/layout.tsx
-export const metadata = {
-  title: "Project Coffee",
-  description: "Waibon POS - Dashboard & Reports",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function Home() {
   return (
-    <html lang="th">
-      <body className="min-h-screen bg-gray-50 text-gray-900">
-        {children}
-      </body>
-    </html>
+    <main className="p-6">
+      <h1 className="text-2xl font-bold">Project Coffee</h1>
+      <p className="mt-2">Waibon POS dashboard is live.</p>
+    </main>
   );
 }
