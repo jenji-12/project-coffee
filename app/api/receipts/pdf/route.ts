@@ -1,43 +1,88 @@
+// app/api/receipts/pdf/route.ts
+export const runtime = 'nodejs'
+export const maxDuration = 60
+
 import { NextResponse } from 'next/server'
 import PDFDocument from 'pdfkit'
 import { createClient } from '@supabase/supabase-js'
 
-export async function GET(req: Request){
-  const url = new URL(req.url); const sale = url.searchParams.get('sale')!
-  const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE!, { auth:{ persistSession:false } })
-  const { data: head } = await s.from('sales').select('id,shop_id,order_no,subtotal,discount,tax,total,created_at').eq('id', sale).single()
-  const { data: items=[] } = await s.from('sale_items').select('product_name_legacy,qty,unit_price,line_discount,line_total').eq('sale_id', sale).order('id')
-  const { data: shop } = await s.from('shops').select('name').eq('id', head.shop_id).single()
-
-  const doc = new PDFDocument({ margin: 30, size: 'A6' })
-  const chunks: any[] = []
-  doc.fontSize(14).text(shop?.name || 'ร้านของคุณ', { align: 'center' })
-  doc.moveDown(0.5)
-  doc.fontSize(10).text(`Order: ${head.order_no || head.id}`, { align: 'center' })
-  doc.text(new Date(head.created_at).toLocaleString('th-TH'), { align: 'center' })
-  doc.moveDown(0.5)
-  doc.moveTo(30, doc.y).lineTo(270, doc.y).stroke()
-
-  doc.moveDown(0.5)
-  items.forEach((it:any)=>{
-    const line = `${it.product_name_legacy||'-'}   x${it.qty}   ${(it.qty*it.unit_price - (it.line_discount||0)).toFixed(2)}`
-    doc.text(line)
+function streamToBuffer(doc: PDFDocument): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = []
+    doc.on('data', (c: Buffer) => chunks.push(c))
+    doc.on('end', () => resolve(Buffer.concat(chunks)))
+    doc.on('error', reject)
+    doc.end()
   })
-  doc.moveDown(0.5)
-  doc.moveTo(30, doc.y).lineTo(270, doc.y).stroke()
-  doc.moveDown(0.3)
+}
 
-  function row(label:string, val:any, bold=false){
-    if(bold) doc.font('Helvetica-Bold')
-    doc.text(`${label}: ${val}`, { align: 'right' })
-    if(bold) doc.font('Helvetica')
+export async function GET(req: Request) {
+  const url = new URL(req.url)
+  const sale = url.searchParams.get('sale')
+  if (!sale) {
+    return NextResponse.json({ error: 'missing sale id' }, { status: 400 })
   }
-  row('Subtotal', Number(head.subtotal).toFixed(2))
-  row('Discount', Number(head.discount).toFixed(2))
-  row('Tax', Number(head.tax).toFixed(2))
-  row('Total', Number(head.total).toFixed(2), true)
 
-  doc.end(); doc.on('data', c=>chunks.push(c))
-  const buf: Buffer = await new Promise(res=> doc.on('end', ()=> res(Buffer.concat(chunks as any))))
-  return new NextResponse(buf, { headers: { 'Content-Type':'application/pdf', 'Content-Disposition':'attachment; filename="receipt.pdf"' } })
+  // ✅ ใช้ service role ที่ฝั่ง server เท่านั้น (อย่าใช้ NEXT_PUBLIC สำหรับ key นี้)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE!
+
+  const s = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
+
+  // --- โหลดข้อมูลใบเสร็จ
+  const { data: head, error: e1 } = await s
+    .from('sales')
+    .select('id,shop_id,order_no,subtotal,discount,tax,total,created_at')
+    .eq('id', sale)
+    .single()
+  if (e1 || !head) return NextResponse.json({ error: e1?.message ?? 'sale not found' }, { status: 404 })
+
+  const { data: items, error: e2 } = await s
+    .from('sale_items')
+    .select('product_name_legacy,qty,unit_price,line_discount,line_total')
+    .eq('sale_id', head.id)
+  if (e2) return NextResponse.json({ error: e2.message }, { status: 500 })
+
+  const { data: shop, error: e3 } = await s
+    .from('shops')
+    .select('name,id')
+    .eq('id', head.shop_id)
+    .single()
+  if (e3 || !shop) return NextResponse.json({ error: e3?.message ?? 'shop not found' }, { status: 404 })
+
+  // --- สร้าง PDF
+  const doc = new PDFDocument({ margin: 30, size: 'A6' })
+
+  doc.fontSize(14).text(shop.name ?? 'ร้านของคุณ', { align: 'center' }).moveDown(0.5)
+  doc.fontSize(10)
+    .text(`Order: ${head.order_no ?? head.id}`, { align: 'center' })
+    .text(new Date(head.created_at).toLocaleString('th-TH'), { align: 'center' })
+    .moveDown(0.5)
+
+  doc.moveTo(30, doc.y).lineTo(270, doc.y).stroke().moveDown(0.5)
+
+  items?.forEach((it) => {
+    const name = it.product_name_legacy ?? ''
+    const qty = Number(it.qty).toFixed(0)
+    const price = Number(it.unit_price).toFixed(2)
+    const total = Number(it.line_total).toFixed(2)
+    doc.text(`${name}  x${qty}  ${price}  =  ${total}`)
+  })
+
+  doc.moveDown(0.5).moveTo(30, doc.y).lineTo(270, doc.y).stroke().moveDown(0.5)
+  doc.text(`Subtotal: ${Number(head.subtotal).toFixed(2)}`)
+  doc.text(`Discount: ${Number(head.discount).toFixed(2)}`)
+  doc.text(`Tax: ${Number(head.tax).toFixed(2)}`)
+  doc.fontSize(12).text(`Total: ${Number(head.total).toFixed(2)}`, { align: 'right' })
+
+  // ✅ แปลงสตรีมเป็น Buffer แล้วค่อยส่งคืน
+  const pdfBuffer = await streamToBuffer(doc)
+
+  return new NextResponse(pdfBuffer, {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="receipt-${head.id}.pdf"`,
+      'Cache-Control': 'no-store',
+    },
+  })
 }
