@@ -1,9 +1,20 @@
+// components/pos/CategoriesTabs.tsx
 'use client'
-export default function CategoriesTabs({ items, active, onPick }:{ items:{id:string,name:string}[], active:string|null, onPick:(id:string|null)=>void }){
-  return <div className="flex gap-2 overflow-x-auto pb-1">
-    <button className={`px-3 py-1 rounded-lg ${active===null?'bg-white/30':'bg-white/10 hover:bg-white/20'}`} onClick={()=>onPick(null)}>ทั้งหมด</button>
-    {items.map(c=>(
-      <button key={c.id} className={`px-3 py-1 rounded-lg ${active===c.id?'bg-white/30':'bg-white/10 hover:bg-white/20'}`} onClick={()=>onPick(c.id)}>{c.name}</button>
-    ))}
-  </div>
+import React from 'react'
+type Props = { active?: string; onChange?: (key: string) => void }
+const tabs = ['all', 'coffee', 'tea', 'bakery']
+export default function CategoriesTabs({ active = 'all', onChange }: Props) {
+  return (
+    <div className="flex gap-2">
+      {tabs.map(t => (
+        <button
+          key={t}
+          className={`px-3 py-1 rounded ${t===active ? 'bg-black text-white' : 'bg-gray-200'}`}
+          onClick={() => onChange?.(t)}
+        >
+          {t}
+        </button>
+      ))}
+    </div>
+  )
 }
