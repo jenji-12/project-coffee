@@ -36,4 +36,4 @@ export default Object.assign(Card, {
   Title: CardTitle,
   Content: CardContent,
   Footer: CardFooter,
-});
+}); 
