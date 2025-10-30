@@ -16,9 +16,12 @@ export function CardTitle({ className = "", ...props }: BaseProps) {
 }
 
 export function CardContent({ className = "", ...props }: BaseProps) {
-  return <div className={`${className}`} {...props} />;
+  return <div className={className} {...props} />;
 }
 
 export function CardFooter({ className = "", ...props }: BaseProps) {
   return <div className={`mt-3 ${className}`} {...props} />;
 }
+
+// ✅ เพิ่มบรรทัดนี้ เพื่อให้ import Card ได้โดยไม่ต้องใช้ {}
+export default Card;
