@@ -1,5 +1,5 @@
 'use client'
-import Card from '@/components/Card'
+import Card from '../../../components/Card'
 import { useRef, useState } from 'react'
 
 export default function ImportExport({ searchParams }:{ searchParams:{ shop?:string } }){
