@@ -1,10 +1,17 @@
 // components/Card.tsx
 import * as React from "react";
 
-type BaseProps = React.HTMLAttributes<HTMLDivElement> & { className?: string };
+type BaseProps = React.HTMLAttributes<HTMLDivElement> & {
+  className?: string;
+};
 
 export function Card({ className = "", ...props }: BaseProps) {
-  return <div className={`rounded-2xl border p-4 shadow-sm ${className}`} {...props} />;
+  return (
+    <div
+      className={`rounded-2xl border border-gray-200 bg-white p-4 shadow-sm ${className}`}
+      {...props}
+    />
+  );
 }
 
 export function CardHeader({ className = "", ...props }: BaseProps) {
@@ -23,5 +30,10 @@ export function CardFooter({ className = "", ...props }: BaseProps) {
   return <div className={`mt-3 ${className}`} {...props} />;
 }
 
-// ✅ เพิ่มบรรทัดนี้ เพื่อให้ import Card ได้โดยไม่ต้องใช้ {}
-export default Card;
+// ✅ เพิ่ม default export เพื่อให้ import Card ได้โดยตรง
+export default Object.assign(Card, {
+  Header: CardHeader,
+  Title: CardTitle,
+  Content: CardContent,
+  Footer: CardFooter,
+});
