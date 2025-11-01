@@ -1,5 +1,5 @@
 'use client'
-import Card from '../../../components/Card'
+import Card from '@/components/Card'
 import { useEffect, useMemo, useState } from 'react'
 
 function tplPercent(){ return { type:'percent', percent:10, scope:'order', min_subtotal:0 } }
